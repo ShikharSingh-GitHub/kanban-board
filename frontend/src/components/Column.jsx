@@ -2,14 +2,14 @@ import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import Task from './Task';
 
-const Column = React.memo(({ task, index, onDelete }) => {
+const Column = ({ task, index, onDelete }) => {
   return (
     <Draggable draggableId={task._id} index={index}>
-      {({ innerRef, draggableProps, dragHandleProps }) => (
+      {(provided) => (
         <div
-          ref={innerRef}
-          {...draggableProps}
-          {...dragHandleProps}
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
           className="task"
         >
           <Task task={task} onDelete={onDelete} />
@@ -17,6 +17,6 @@ const Column = React.memo(({ task, index, onDelete }) => {
       )}
     </Draggable>
   );
-});
+};
 
 export default Column;

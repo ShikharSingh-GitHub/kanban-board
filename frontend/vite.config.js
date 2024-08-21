@@ -3,6 +3,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
-  base: './',
-  // Server proxy only needed during local development
+  server: {
+    proxy: {
+      '/api': 'http://localhost:5000',
+    },
+  },
 });

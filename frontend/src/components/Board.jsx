@@ -5,6 +5,7 @@ import Column from './Column';
 
 const Board = () => {
   const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState({ title: '', description: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -13,11 +14,7 @@ const Board = () => {
       setLoading(true);
       try {
         const { data } = await axios.get('/api/tasks');
-        if (Array.isArray(data)) {
-          setTasks(data); // Ensure that `data` is an array before setting the tasks
-        } else {
-          setError('API did not return an array');
-        }
+        setTasks(data);
       } catch (error) {
         setError('Error fetching tasks');
       }
@@ -26,17 +23,20 @@ const Board = () => {
     fetchTasks();
   }, []);
 
-  const handleDelete = async (taskId) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewTask({ ...newTask, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
     try {
-      await axios.delete(`/api/tasks/${taskId}`);
-      if (Array.isArray(tasks)) {
-        setTasks(tasks.filter(task => task._id !== taskId)); // Only filter if `tasks` is an array
-      } else {
-        setError('Tasks data is not an array');
-      }
+      const { data } = await axios.post('/api/tasks', { ...newTask, status: 'To Do' });
+      setTasks([...tasks, data]);
+      setNewTask({ title: '', description: '' });
     } catch (error) {
-      setError('Error deleting task');
+      setError('Error creating task');
     }
     setLoading(false);
   };
@@ -47,8 +47,6 @@ const Board = () => {
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     const draggedTask = tasks.find(task => task._id === result.draggableId);
-    if (!draggedTask) return;
-
     const updatedTasks = tasks.map(task =>
       task._id === draggedTask._id ? { ...task, status: destination.droppableId } : task
     );
@@ -61,12 +59,38 @@ const Board = () => {
     }
   };
 
+  const handleDelete = async (taskId) => {
+    setLoading(true);
+    try {
+      await axios.delete(`/api/tasks/${taskId}`);
+      setTasks(tasks.filter(task => task._id !== taskId));
+    } catch (error) {
+      setError('Error deleting task');
+    }
+    setLoading(false);
+  };
+
   return (
     <div>
-      <form>
-        <input type="text" name="title" placeholder="Task Title" />
-        <input type="text" name="description" placeholder="Task Description" />
-        <button type="submit">Add Task</button>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          name="title"
+          placeholder="Task Title"
+          value={newTask.title}
+          onChange={handleInputChange}
+          required
+        />
+        <input
+          type="text"
+          name="description"
+          placeholder="Task Description"
+          value={newTask.description}
+          onChange={handleInputChange}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? 'Adding...' : 'Add Task'}
+        </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <DragDropContext onDragEnd={onDragEnd}>
@@ -75,7 +99,7 @@ const Board = () => {
             {(provided) => (
               <div ref={provided.innerRef} {...provided.droppableProps} className="column">
                 <h2>To Do</h2>
-                {Array.isArray(tasks) && tasks.filter(task => task.status === 'To Do').map((task, index) => (
+                {tasks.filter(task => task.status === 'To Do').map((task, index) => (
                   <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
                 ))}
                 {provided.placeholder}
@@ -86,7 +110,7 @@ const Board = () => {
             {(provided) => (
               <div ref={provided.innerRef} {...provided.droppableProps} className="column">
                 <h2>In Progress</h2>
-                {Array.isArray(tasks) && tasks.filter(task => task.status === 'In Progress').map((task, index) => (
+                {tasks.filter(task => task.status === 'In Progress').map((task, index) => (
                   <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
                 ))}
                 {provided.placeholder}
@@ -97,7 +121,7 @@ const Board = () => {
             {(provided) => (
               <div ref={provided.innerRef} {...provided.droppableProps} className="column">
                 <h2>Done</h2>
-                {Array.isArray(tasks) && tasks.filter(task => task.status === 'Done').map((task, index) => (
+                {tasks.filter(task => task.status === 'Done').map((task, index) => (
                   <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
                 ))}
                 {provided.placeholder}
