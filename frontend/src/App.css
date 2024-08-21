@@ -1,7 +1,22 @@
+/* Define CSS Variables */
+:root {
+  --primary-color: #007bff;
+  --primary-hover: #0056b3;
+  --danger-color: #ff4c4c;
+  --danger-hover: #e63939;
+  --background-color: #f4f4f4;
+  --text-color: #333;
+  --subtext-color: #777;
+  --column-bg-color: #fff;
+  --task-bg-color: #fafafa;
+  --border-color: #ddd;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 /* General Styles */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f4f4;
+  background-color: var(--background-color);
   margin: 0;
   padding: 0;
 }
@@ -13,21 +28,25 @@ body {
   padding: 20px;
 }
 
+/* Button Styles */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
 /* Refresh Button Styles */
 .refresh-button {
   padding: 10px 20px;
   margin-bottom: 20px;
   font-size: 1em;
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .refresh-button:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
 }
 
@@ -38,22 +57,28 @@ body {
   gap: 20px;
 }
 
+@media (max-width: 768px) {
+  .board {
+    flex-direction: column;
+  }
+}
+
 /* Column Styles */
 .column {
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background-color: var(--column-bg-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px;
   width: 30%;
   min-height: 400px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--box-shadow);
   transition: background-color 0.3s ease;
 }
 
 .column h2 {
   margin-top: 0;
   font-size: 1.4em;
-  color: #333;
+  color: var(--text-color);
 }
 
 .column:hover {
@@ -62,8 +87,8 @@ body {
 
 /* Task Styles */
 .task {
-  background-color: #fafafa;
-  border: 1px solid #ddd;
+  background-color: var(--task-bg-color);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
@@ -80,27 +105,24 @@ body {
 .task h3 {
   margin: 0;
   font-size: 1.2em;
-  color: #555;
+  color: var(--text-color);
 }
 
 .task p {
   margin: 5px 0 10px;
-  color: #777;
+  color: var(--subtext-color);
 }
 
+/* Delete Button Styles */
 .task button {
   padding: 5px 10px;
   font-size: 0.9em;
-  background-color: #ff4c4c;
+  background-color: var(--danger-color);
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .task button:hover {
-  background-color: #e63939;
+  background-color: var(--danger-hover);
   transform: translateY(-2px);
 }
 
@@ -121,21 +143,17 @@ form input {
 }
 
 form input:focus {
-  border-color: #007bff;
+  border-color: var(--primary-color);
 }
 
 form button {
   padding: 10px;
   font-size: 1em;
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 form button:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
   transform: translateY(-2px);
 }

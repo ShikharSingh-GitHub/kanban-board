@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import Column from './Column';
 
@@ -9,31 +9,34 @@ const Board = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        const { data } = await axios.get('/api/tasks');
-        setTasks(data);
-      } catch (error) {
-        setError('Error fetching tasks');
-      }
-      setLoading(false);
-    };
-    fetchTasks();
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data } = await axios.get('/api/tasks');
+      setTasks(data);
+    } catch (error) {
+      setError('Error fetching tasks');
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewTask({ ...newTask, [name]: value });
+    setNewTask((prevTask) => ({ ...prevTask, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       const { data } = await axios.post('/api/tasks', { ...newTask, status: 'To Do' });
-      setTasks([...tasks, data]);
+      setTasks((prevTasks) => [...prevTasks, data]);
       setNewTask({ title: '', description: '' });
     } catch (error) {
       setError('Error creating task');
@@ -43,8 +46,9 @@ const Board = () => {
 
   const onDragEnd = async (result) => {
     const { source, destination } = result;
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+    if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+      return;
+    }
 
     const draggedTask = tasks.find(task => task._id === result.draggableId);
     const updatedTasks = tasks.map(task =>
@@ -61,9 +65,10 @@ const Board = () => {
 
   const handleDelete = async (taskId) => {
     setLoading(true);
+    setError('');
     try {
       await axios.delete(`/api/tasks/${taskId}`);
-      setTasks(tasks.filter(task => task._id !== taskId));
+      setTasks((prevTasks) => prevTasks.filter(task => task._id !== taskId));
     } catch (error) {
       setError('Error deleting task');
     }
@@ -93,41 +98,22 @@ const Board = () => {
         </button>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      {loading && <p>Loading tasks...</p>}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="board">
-          <Droppable droppableId="To Do">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="column">
-                <h2>To Do</h2>
-                {tasks.filter(task => task.status === 'To Do').map((task, index) => (
-                  <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-          <Droppable droppableId="In Progress">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="column">
-                <h2>In Progress</h2>
-                {tasks.filter(task => task.status === 'In Progress').map((task, index) => (
-                  <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-          <Droppable droppableId="Done">
-            {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="column">
-                <h2>Done</h2>
-                {tasks.filter(task => task.status === 'Done').map((task, index) => (
-                  <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+          {['To Do', 'In Progress', 'Done'].map((status) => (
+            <Droppable key={status} droppableId={status}>
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} className="column">
+                  <h2>{status}</h2>
+                  {tasks.filter(task => task.status === status).map((task, index) => (
+                    <Column key={task._id} task={task} index={index} onDelete={handleDelete} />
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          ))}
         </div>
       </DragDropContext>
     </div>
